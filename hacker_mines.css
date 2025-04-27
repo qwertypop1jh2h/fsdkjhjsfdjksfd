@@ -1,0 +1,418 @@
+/* --- START OF FILE hacker_mines.css --- */
+
+/* Подключаем шрифт */
+@font-face {
+  font-family: 'Roboto Mono'; /* Используем стандартный моноширинный */
+  /* Указываем на локальный или веб-шрифт, если нужно */
+  /* src: url('path/to/roboto-mono.woff2') format('woff2'); */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Глобальные стили и переменные */
+:root {
+    /* Hacker Palette */
+    --hacker-bg: #0a0a0a;         /* Deep black */
+    --hacker-bg-light: #1a1a1a;   /* Lighter black/dark gray */
+    --hacker-green: #00ff41;      /* Bright green */
+    --hacker-green-medium: #00c733;/* Medium green */
+    --hacker-green-dark: #008f25; /* Dark green */
+    --hacker-text: var(--hacker-green);
+    --hacker-text-dim: #00a82b;   /* Dimmer green */
+    --hacker-border: var(--hacker-green-dark);
+    --hacker-glow: rgba(0, 255, 65, 0.3); /* Green glow */
+    --hacker-shadow: rgba(0, 255, 65, 0.15); /* Subtle green shadow */
+    --hacker-error: #ff4141;      /* Red for errors */
+    --hacker-error-glow: rgba(255, 65, 65, 0.4);
+
+    /* Blinking Cursor */
+    --cursor-blink-speed: 0.8s;
+}
+
+body, html {
+    height: 100%;
+    overflow: hidden; /* Скрываем скролл изначально */
+}
+
+body {
+    font-family: 'Roboto Mono', 'Consolas', 'Courier New', monospace;
+    background-color: var(--hacker-bg);
+    color: var(--hacker-text);
+    display: flex; /* Используем flex для центрирования */
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+img {
+   pointer-events: none;
+   -webkit-touch-callout: none;
+   user-select: none;
+}
+
+/* --- Loader Styles (Hacker Terminal Boot) --- */
+#loader-overlay {
+    position: fixed; /* Cover the whole screen */
+    inset: 0;
+    background-color: var(--hacker-bg);
+    z-index: 100; /* Above everything else initially */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    pointer-events: auto;
+    /* Долгая задержка + время исчезания */
+    transition: opacity 0.8s ease-out 3.8s, visibility 0s linear 4.6s;
+}
+#loader-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.hacker-loader {
+    width: 90%;
+    max-width: 500px; /* Чуть шире */
+    font-size: 0.9rem;
+    line-height: 1.6;
+    padding: 15px;
+    border: 1px solid var(--hacker-border);
+    box-shadow: 0 0 10px var(--hacker-shadow);
+    margin-bottom: 20px;
+    background: rgba(10, 20, 10, 0.1);
+}
+
+.loader-line {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 0;
+    color: var(--hacker-text);
+    text-shadow: 0 0 3px var(--hacker-glow);
+    animation: typing 1.2s steps(60, end) forwards, /* Увеличим шаги */
+               fadeInLine 0.1s ease forwards;
+    animation-delay: var(--line-delay, 0s);
+    margin-bottom: 4px;
+}
+.loader-line::before {
+    content: '$ ';
+    opacity: 0.7;
+    color: var(--hacker-green-medium);
+}
+.loader-line.no-prompt::before { content: ''; }
+.loader-line.success { color: #ffffff; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+.loader-line.warning { color: #ffd700; } /* Желтый для предупреждений */
+.loader-line.error { color: var(--hacker-error); text-shadow: 0 0 5px var(--hacker-error-glow); }
+.loader-line:last-child::after {
+    content: '_';
+    opacity: 0;
+    animation: blinkCursor var(--cursor-blink-speed) step-end infinite;
+    animation-delay: calc(var(--line-delay, 0s) + 1.2s);
+    margin-left: 3px;
+    color: var(--hacker-text);
+}
+
+@keyframes typing { from { width: 0 } to { width: 100% } }
+@keyframes fadeInLine { to { opacity: 1; } }
+@keyframes blinkCursor { from, to { opacity: 0 } 50% { opacity: 1 } }
+
+/* --- Digital Rain Background --- */
+.digital-rain {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1; /* За контентом */ pointer-events: none; overflow: hidden; background: var(--hacker-bg);
+}
+.rain-char {
+    position: absolute; font-size: 14px; color: var(--hacker-green-dark); opacity: 0;
+    animation: fall linear infinite; user-select: none; text-shadow: 0 0 4px var(--hacker-shadow);
+}
+@keyframes fall {
+    0% { transform: translateY(-20px); opacity: 0; }
+    5% { opacity: 1; } 95% { opacity: 1; }
+    100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* Основной контейнер игры */
+.game-container { /* Новый контейнер для игры */
+    position: relative;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px; /* Уменьшим паддинг */
+    width: 100%; /* Займет всю доступную ширину */
+    max-width: 400px; /* Ограничим макс ширину */
+    box-sizing: border-box;
+    /* Изначально скрыт */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(15px);
+    transition: opacity 0.5s ease-out 0.1s, visibility 0s linear 0.6s, transform 0.5s ease-out 0.1s;
+}
+.game-container.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition-delay: 0s, 0s, 0s;
+}
+
+/* Логотип 1win */
+.logo {
+    position: absolute;
+    top: -10px;
+    left: 160px;
+    z-index: 10;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+.logo img {
+    width: 80px; /* Меньше */
+    height: auto;
+    filter: grayscale(1) brightness(1.5) contrast(0.5) sepia(100%) hue-rotate(70deg); /* Зеленый фильтр */
+}
+.logo:hover { opacity: 1; }
+
+/* Убираем второй логотип и его стили */
+.logos2 { display: none; }
+
+/* Убираем фоновый градиент у flex */
+.flex { display: flex; background: none; margin-top: 0; /* Убираем отступ */}
+.justify-center { justify-content: center; }
+.align-middle { vertical-align: middle; }
+
+/* Игровое поле */
+.cells-board-wrapper {
+    margin: 15px auto 0; /* Уменьшим отступы СВЕРХУ, уберем снизу (контролируется developer-credit) */
+    position: relative;
+    width: min(300px, 90vw); /* Уменьшим размер поля */
+}
+/* Убираем псевдоэлементы с картинками */
+.cells-board-wrapper::before, .cells-board-wrapper::after { display: none; }
+
+.cells-board {
+    background-color: var(--hacker-bg-light); /* Темный фон */
+    background-image: none; /* Убираем картинку рамки */
+    border: 1px solid var(--hacker-border); /* Зеленая рамка */
+    border-radius: 3px; /* Острые углы */
+    box-shadow: 0 0 15px var(--hacker-shadow); /* Зеленое свечение */
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 3px; /* Уменьшим разрыв */
+    padding: 5px; /* Уменьшим паддинг */
+    position: relative;
+    width: 100%; /* Занимает всю ширину wrapper */
+    height: min(300px, 90vw); /* Уменьшим размер поля */
+    margin: 0 auto;
+}
+
+/* Маска (можно оставить, если нужна сложная форма) - пока скроем */
+.cells-board-mask { display: none; }
+
+/* Ячейки */
+.cell {
+    background: var(--hacker-bg); /* Темный фон ячейки */
+    border: 1px solid var(--hacker-border);
+    border-radius: 2px;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+.cell:hover {
+    background-color: var(--hacker-bg-light);
+    border-color: var(--hacker-green-medium);
+}
+.cell:active {
+    transform: scale(0.95);
+}
+
+.cell img {
+    width: 75%; /* Уменьшим картинку внутри */
+    height: 75%;
+    display: block;
+    object-fit: contain;
+    /* Зеленый фильтр для картинок */
+    filter: grayscale(1) brightness(1.2) contrast(1) sepia(100%) hue-rotate(70deg) opacity(0.7);
+    transition: filter 0.3s ease, transform 0.3s ease, opacity 0.3s ease; /* Added opacity transition */
+}
+.cell:hover img {
+    filter: grayscale(0.5) brightness(1.5) contrast(1) sepia(100%) hue-rotate(70deg) opacity(1);
+    transform: scale(1.05);
+}
+
+/* Стиль для вскрытой ячейки */
+.cell.revealed {
+    background-color: var(--hacker-green-dark); /* Темно-зеленый фон */
+    border-color: var(--hacker-green);
+    box-shadow: inset 0 0 8px var(--hacker-glow);
+    cursor: default;
+}
+.cell.revealed img { /* Убираем или стилизуем иконку во вскрытой ячейке */
+    display: none; /* Например, просто скрываем */
+    /* Или можно заменить на зеленый символ */
+    /* content: '✓'; color: var(--hacker-green); font-size: 24px; */
+}
+
+/* Анимация исчезновения картинки при вскрытии */
+.cell img.cell-fade-out {
+    animation: fadeOutContent 0.2s ease forwards; /* Adjusted duration to match JS */
+}
+@keyframes fadeOutContent {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.8); }
+}
+
+/* Статус бар */
+.status-bar {
+    background: var(--hacker-bg-light);
+    border: 1px solid var(--hacker-border);
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    position: relative;
+    z-index: 4;
+    width: min(300px, 90vw);
+    margin: 0 auto; /* Убраны верхний и нижний отступы (контролируются соседними элементами) */
+}
+
+
+.status-bar__select-traps {
+    background-color: var(--hacker-bg);
+    border-radius: 2px;
+    border: 1px solid var(--hacker-border);
+    height: 2.5rem; /* Немного ниже */
+    padding: .5rem .8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 10px; /* Отступ до кнопки Play */
+}
+
+.select-traps { /* Убираем лишний фон */
+    align-items: center; display: flex; justify-content: space-between; width: 100%;
+}
+
+.select-traps__content { align-items: center; display: flex; flex-direction: column; width: auto; /* Убираем фикс ширину */ margin: 0 10px;}
+.select-traps__traps_amount { color: var(--hacker-text); font-size: 15px; font-weight: 500; line-height: 1.1; }
+.select-traps__title { color: var(--hacker-text-dim); font-size: 11px; font-weight: 400; line-height: 1.2; text-transform: uppercase; }
+
+#prev_preset_btn,
+#next_preset_btn {
+    background: none; border: 1px solid var(--hacker-border); border-radius: 2px;
+    cursor: pointer; padding: 0 8px; min-width: 30px; min-height: 30px;
+    display: flex; align-items: center; justify-content: center; transition: background-color 0.2s, border-color 0.2s;
+}
+#prev_preset_btn:hover,
+#next_preset_btn:hover {
+    background-color: var(--hacker-bg-light); border-color: var(--hacker-green-medium);
+}
+.select-traps__arrow-icon { fill: var(--hacker-text-dim); height: 1rem; width: .6rem; transition: fill 0.2s; }
+#prev_preset_btn:hover .select-traps__arrow-icon,
+#next_preset_btn:hover .select-traps__arrow-icon { fill: var(--hacker-green); }
+.select-traps__arrow-icon_prev { transform: rotate(180deg); }
+
+/* Кнопка Play */
+#playButton {
+    background: transparent;
+    border: 1px solid var(--hacker-border);
+    border-radius: 2px;
+    color: var(--hacker-text);
+    font-size: 14px; font-family: inherit; font-weight: 500;
+    height: 40px; /* Немного ниже */
+    width: 100%; /* Занимает всю ширину */
+    cursor: pointer;
+    margin-bottom: 10px; /* Отступ до кнопки Назад */
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.1s;
+    text-transform: uppercase;
+}
+#playButton::before { content: '> '; }
+#playButton:hover { background: var(--hacker-green-dark); color: var(--hacker-bg); border-color: var(--hacker-green-dark); }
+#playButton:active { transform: scale(0.98); background: var(--hacker-green); }
+#playButton:disabled {
+    opacity: 0.4; cursor: not-allowed; background: var(--hacker-bg-light); color: var(--hacker-text-dim); border-color: var(--hacker-border);
+}
+
+/* Кнопка Назад */
+.back-button { /* Копируем стиль кнопки Play для консистентности */
+    background: transparent;
+    border: 1px solid var(--hacker-border);
+    border-radius: 2px;
+    color: var(--hacker-text-dim); /* Тусклее по умолчанию */
+    font-size: 13px; font-family: inherit; font-weight: 500;
+    height: 35px;
+    width: 100%;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.1s;
+    text-transform: uppercase;
+    display: block; /* Чтобы занимала всю ширину */
+}
+.back-button::before { content: '< '; }
+.back-button::after { content: ' // EXIT'; opacity: 0.7;}
+.back-button:hover { background: var(--hacker-bg-light); color: var(--hacker-text); border-color: var(--hacker-green-medium); }
+.back-button:active { transform: scale(0.98); background: var(--hacker-green-dark); }
+
+
+/* Стили для скрытых элементов и попапов */
+.hidden { display: none !important; }
+.popup { /* Стилизуем попап, если используется */
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(10, 10, 10, 0.8); backdrop-filter: blur(3px);
+  display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+.popup-content {
+  background-color: var(--hacker-bg-light); border: 1px solid var(--hacker-border);
+  padding: 20px; border-radius: 3px; text-align: center;
+  width: min(300px, 90vw); margin: 20px; color: var(--hacker-text);
+  box-shadow: 0 0 15px var(--hacker-shadow);
+}
+/* Стили кнопок в попапе (если есть) */
+.popup-buttons button { /* Пример стилизации */
+    background: var(--hacker-bg); color: var(--hacker-text); border: 1px solid var(--hacker-border);
+    padding: 8px 15px; margin: 5px; border-radius: 2px; cursor: pointer; font-family: inherit;
+    transition: background-color 0.2s, color 0.2s;
+}
+.popup-buttons button:hover { background: var(--hacker-green-dark); color: var(--hacker-bg); }
+
+/* Адаптивность */
+@media (max-width: 767px) {
+  .cells-board-wrapper, .cells-board, .status-bar { width: 95vw; height: auto; }
+  .cells-board { min-height: 95vw; height: 95vw; } /* Делаем поле квадратным */
+}
+
+.no-select { -webkit-user-select: none; user-select: none; }
+@media (hover: none) {
+  #prev_preset_btn, #next_preset_btn, #playButton, .back-button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* --- ADDED: Animation for Developer Credit --- */
+@keyframes pulseFade {
+  0%, 100% {
+    opacity: 0.7; /* Fully visible state */
+  }
+  50% {
+    opacity: 0.2; /* Faded out state */
+  }
+}
+
+/* --- END OF FILE hacker_mines.css --- */

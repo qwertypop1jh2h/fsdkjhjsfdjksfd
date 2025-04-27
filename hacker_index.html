@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mines // Terminal</title> <!-- Hacker Title -->
+    <!-- Подключаем Roboto Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hacker_mines.css">
+</head>
+<body>
+    <!-- Loader Overlay -->
+    <div id="loader-overlay">
+        <div class="hacker-loader">
+            <span class="loader-line" style="--line-delay: 0.0s;">Initiating system link...</span>
+            <span class="loader-line" style="--line-delay: 0.3s;">Target: 1win.com/mines (API v2.1)</span>
+            <span class="loader-line" style="--line-delay: 0.6s;">Authenticating... [Token Accepted]</span>
+            <span class="loader-line" style="--line-delay: 1.0s;">Scanning grid layout... 5x5 detected</span>
+            <span class="loader-line warning" style="--line-delay: 1.5s;">Multiple trap configurations found.</span>
+            <span class="loader-line" style="--line-delay: 1.9s;">Loading prediction module...</span>
+            <span class="loader-line success" style="--line-delay: 2.4s;">Heuristic analysis enabled. Ready.</span>
+            <span class="loader-line no-prompt" style="--line-delay: 2.9s;">Waiting for user input...</span>
+        </div>
+        <!-- Added Telegram ID to Loader -->
+        <p style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: var(--hacker-green-dim, #00a82b); font-size: 0.9em; z-index: 10; font-family: 'Roboto Mono', monospace; opacity: 0.7;">
+            @RECRUT55
+        </p>
+    </div>
+
+     <!-- Digital Rain Background Container -->
+    <div class="digital-rain" id="digital-rain-container"></div>
+
+    <!-- Основной игровой контейнер -->
+    <div class="game-container" id="main-game-container"> <!-- ID is present -->
+        <div class="logo">
+            <img src="img/1win.svg" alt="1win logo"> <!-- Убедитесь, что путь верный -->
+        </div>
+
+        <div class="flex justify-center align-middle">
+            <div class="cells-board-wrapper">
+                <div class="cells-board">
+                    <!-- 25 кнопок-ячеек (original buttons remain) -->
+                    <button type="button" class="cell"><img src="output_svgs/image_5450.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_11641.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_18337.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_24493.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_31201.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_37357.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_44065.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_50221.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_56929.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_63085.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_69793.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_75949.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_82645.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_89353.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_95509.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_102217.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_108373.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_115081.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_121237.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_127381.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_134077.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_140221.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_146917.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_153061.svg"></button>
+                    <button type="button" class="cell"><img src="output_svgs/image_159757.svg"></button>
+                    <!-- Маска (если нужна) -->
+                    <!-- <div class="cells-board-mask"><div class="animated-highlight"></div></div> -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Telegram ID will be added here by JS -->
+        <!-- Status bar comes after the developer credit -->
+        <div class="status-bar">
+            <div class="select-traps status-bar__select-traps">
+                <button class="select-traps__prev-arrow-btn" type="button" id="prev_preset_btn">
+                    <svg class="select-traps__arrow-icon select-traps__arrow-icon_prev" viewBox="0 0 13 20"><path d="M2.92616 20.0002L10.7906 12.082L12.8584 10.0001L10.7906 7.91821L2.92616 0L0.858398 2.0819L8.72287 10.0001L0.858398 17.9183L2.92616 20.0002Z"></path></svg>
+                </button>
+                <div class="select-traps__content">
+                    <span class="select-traps__traps_amount" id="trapsAmount">1</span>
+                    <span class="select-traps__title">TRAPS</span> <!-- Изменен текст -->
+                </div>
+                <button class="select-traps__next-arrow-btn" type="button" id="next_preset_btn">
+                    <svg class="select-traps__arrow-icon" viewBox="0 0 13 20"><path d="M2.92616 20.0002L10.7906 12.082L12.8584 10.0001L10.7906 7.91821L2.92616 0L0.858398 2.0819L8.72287 10.0001L0.858398 17.9183L2.92616 20.0002Z"></path></svg>
+                </button>
+            </div>
+            <button id="playButton" type="button">
+                <span>RUN</span> <!-- Изменен текст -->
+            </button>
+             <!-- EXIT BUTTON REMOVED -->
+             <!-- <button class="back-button" onclick="location.href='https://google.com/'">EXIT</button> -->
+        </div>
+
+    </div> <!-- Конец .game-container -->
+
+    <!-- Попапы (если используются) -->
+    <div id="resetPopup" class="popup hidden">
+        <div class="popup-content">
+            <p id="popup-content">Reset confirmation needed...</p>
+            <div class="popup-buttons">
+                <button id="confirmReset">CONFIRM</button>
+                <button id="cancelReset">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="hacker_mines.js" defer></script>
+</body>
+</html>
